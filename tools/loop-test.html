@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Loop Seam Test</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; background: #0d1117; color: #e6edf3; }
+  button { display: block; margin: 8px 0; padding: 10px 16px; background: #1a2332; color: inherit; border: 0; cursor: pointer; }
+  button.playing { background: #5a8dff; }
+</style>
+</head>
+<body>
+<h1>Loop seam verification</h1>
+<p>Each button plays the track 3× back-to-back via Web Audio (loop=true). Listen for clicks/gaps at loop points.</p>
+<div id="list"></div>
+<script type="module">
+import { LIBRARY } from '../src/library.js';
+
+let ctx, current = null;
+
+async function play(track, btn) {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (current) { current.stop(); current.disconnect(); }
+  document.querySelectorAll('button').forEach(b => b.classList.remove('playing'));
+  btn.classList.add('playing');
+
+  const res = await fetch('../' + track.file);
+  const buf = await ctx.decodeAudioData(await res.arrayBuffer());
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  src.connect(ctx.destination);
+  src.start();
+  // Stop after 3 loop durations
+  src.stop(ctx.currentTime + buf.duration * 3);
+  current = src;
+}
+
+const list = document.getElementById('list');
+for (const t of LIBRARY) {
+  const b = document.createElement('button');
+  b.textContent = t.label + '  (' + t.file + ')';
+  b.addEventListener('click', () => play(t, b));
+  list.appendChild(b);
+}
+</script>
+</body>
+</html>
