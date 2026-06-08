@@ -19,6 +19,23 @@ npm run serve   # http://localhost:8000
 npm test
 ```
 
+## Deploy
+
+One-command deploy to Cloudflare Pages (free, global CDN, HTTPS, push-to-redeploy):
+
+```bash
+bash tools/deploy.sh
+```
+
+First run creates a GitHub repo, pushes, and deploys. Subsequent runs just push + redeploy. Prerequisites (the script tells you if anything's missing):
+
+```bash
+brew install gh && gh auth login
+npm install -g wrangler && wrangler login
+```
+
+The script prints the live URL when it finishes (e.g. `https://whitenoise.pages.dev`).
+
 ## Project layout
 
 ```
