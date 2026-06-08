@@ -19,13 +19,29 @@ npm test          # 14 unit tests
 
 ## Add audio
 
-1. Put 13 files in `audio/` named exactly: `rain-light.m4a`, `rain-heavy.m4a`, `thunder.m4a`, `ocean.m4a`, `forest.m4a`, `mountain-breeze.m4a`, `river.m4a`, `fireplace.m4a`, `crickets.m4a`, `brown-noise.m4a`, `pink-noise.m4a`, `white-noise.m4a`, `fan.m4a`.
-2. Each must be a seamless loop (zero-crossings at start/end). Verify in the browser:
+13 tracks total. **3 are already in repo** (brown / pink / white noise — generated locally by `tools/gen-noise.sh`).
+
+For the **10 nature tracks** (rain, ocean, forest, etc.), the easiest path is YouTube:
+
+1. Open `audio/SOURCES.md` and fill in a YouTube URL per track. Suggested searches included.
+2. Run:
+   ```bash
+   bash tools/import-from-youtube.sh
+   ```
+   The script downloads, trims a 5-min segment (skipping the first 60s by default), and transcodes to mono AAC at 128 kbps. ~30 seconds per track.
+3. Verify the loops sound clean by playing them in the browser:
    ```bash
    npm run serve
    open http://localhost:8000/tools/loop-test.html
    ```
-3. Fill in `audio/LICENSES.md` (per-track source + license).
+
+> **License caveat:** YouTube audio is almost always copyrighted. The importer marks `audio/LICENSES.md` entries as `TBD`. Resolve licensing (CC-licensed videos, paid library, or own recording) before public release.
+
+To **regenerate the noise tracks** (or change their duration):
+
+```bash
+bash tools/gen-noise.sh
+```
 
 ## Deploy
 
