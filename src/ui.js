@@ -18,6 +18,11 @@ export class UI {
   _render() {
     const s = this._state.get();
     this._root.innerHTML = `
+      <div class="install-hint" data-role="install-hint" hidden>
+        <span>Install: tap Share → Add to Home Screen</span>
+        <button data-role="dismiss-install">×</button>
+      </div>
+
       <header class="hdr">
         <div class="title">Tonight</div>
       </header>
@@ -52,6 +57,7 @@ export class UI {
     this._renderFavorites(s);
     this._renderAllGrid(s);
     this._wireMiniPlayer();
+    this._wireInstallHint();
     this._restoreMiniPlayerState();
   }
 
@@ -157,6 +163,21 @@ export class UI {
     this._isPlaying = false;
     this._root.querySelector('[data-role="play-pause"]').textContent = '▶';
     this._stopCountdown();
+  }
+
+  _wireInstallHint() {
+    const hint = this._root.querySelector('[data-role="install-hint"]');
+    const dismiss = this._root.querySelector('[data-role="dismiss-install"]');
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const dismissed = localStorage.getItem('whitenoise.install.dismissed') === '1';
+    if (isIos && !isStandalone && !dismissed) {
+      hint.hidden = false;
+    }
+    dismiss.addEventListener('click', () => {
+      hint.hidden = true;
+      localStorage.setItem('whitenoise.install.dismissed', '1');
+    });
   }
 
   _restoreMiniPlayerState() {
