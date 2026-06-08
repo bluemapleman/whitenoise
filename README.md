@@ -21,20 +21,104 @@ npm test
 
 ## Deploy
 
-One-command deploy to Cloudflare Pages (free, global CDN, HTTPS, push-to-redeploy):
+The app is deployed to **Cloudflare Pages** — free tier, global CDN, automatic HTTPS, no bandwidth limits. `tools/deploy.sh` is the single entry point: first run does the full setup, subsequent runs just push + redeploy.
+
+### First-time setup (one-time, ~10 minutes)
+
+You only do this once per machine.
+
+**1. Install the two CLI tools:**
+
+```bash
+brew install gh                    # GitHub CLI
+npm install -g wrangler            # Cloudflare CLI
+```
+
+**2. Authenticate both:**
+
+```bash
+gh auth login                      # opens browser → GitHub OAuth
+wrangler login                     # opens browser → Cloudflare OAuth
+```
+
+You need a (free) GitHub account and a (free) Cloudflare account. If you don't have a Cloudflare account yet, sign up at https://dash.cloudflare.com/sign-up — credit card not required.
+
+**3. First deploy:**
 
 ```bash
 bash tools/deploy.sh
 ```
 
-First run creates a GitHub repo, pushes, and deploys. Subsequent runs just push + redeploy. Prerequisites (the script tells you if anything's missing):
+The script will:
+- Verify both CLIs are installed and authenticated.
+- Warn if you have fewer than 13 audio files in `audio/` (deploy continues if you confirm).
+- Prompt to commit any pending changes.
+- Create a GitHub repo (asks public/private, default `private`) and push.
+- Deploy to a fresh Cloudflare Pages project named `whitenoise`.
+- Print the live URL (e.g. `https://whitenoise.pages.dev`).
+
+The first deploy takes ~30 seconds. Cloudflare propagates globally within a minute.
+
+### Ongoing deploys
+
+Once setup is done, every deploy is one command:
 
 ```bash
-brew install gh && gh auth login
-npm install -g wrangler && wrangler login
+bash tools/deploy.sh
 ```
 
-The script prints the live URL when it finishes (e.g. `https://whitenoise.pages.dev`).
+It will:
+- Prompt to commit any pending changes (with a message you provide).
+- Push to GitHub.
+- Re-deploy to Cloudflare Pages.
+
+The live URL stays the same (`https://whitenoise.pages.dev`) — Cloudflare swaps content in place. Users on the site at deploy time will see the update on their next page load.
+
+### What the script ships (and doesn't)
+
+The deploy bundle excludes spec, plan, tests, dev tooling, and `node_modules/`:
+
+| Included | Excluded |
+|---|---|
+| `index.html`, `styles.css` | `package.json`, `vitest.config.js` |
+| `src/*.js` (runtime modules) | `tests/`, `tools/` |
+| `manifest.json`, `service-worker.js` | `docs/` (spec + plan stay private) |
+| `icons/` | `node_modules/` |
+| `audio/*.m4a` | `README.md`, `.gitignore` |
+
+This keeps the public deploy lean and avoids leaking design docs to crawlers.
+
+### Custom domain (optional)
+
+A real domain like `tonight.app` is more memorable than `whitenoise.pages.dev`. Setup:
+
+1. Buy a domain (Cloudflare Registrar is at-cost, ~$10/year for `.app` or `.com`).
+2. Cloudflare dashboard → Workers & Pages → `whitenoise` → Custom domains → Add custom domain → enter your domain.
+3. Cloudflare auto-configures DNS if you bought via Cloudflare Registrar; otherwise you point your registrar's nameservers at Cloudflare.
+4. HTTPS provisions automatically within minutes.
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `gh: command not found` | gh not installed | `brew install gh` |
+| `wrangler: command not found` | wrangler not on PATH | `npm install -g wrangler`; check `npm bin -g` is on `$PATH` |
+| `gh auth status` reports not authenticated | Token expired or revoked | `gh auth login` again |
+| Wrangler asks for account selection on every deploy | Multiple Cloudflare accounts on the token | `wrangler login` and pick one, or set `CLOUDFLARE_ACCOUNT_ID` |
+| Tiles 404 on the live site | No audio files yet | Add `.m4a` files to `audio/` and redeploy |
+| Service worker serves stale assets after deploy | Browser cached old SW | Bump `CACHE = 'whitenoise-v1'` to `v2` in `service-worker.js`; existing users update on next visit |
+| Deploy fails with "project not found" | Pages project name collision | Edit `PAGES_PROJECT` in `tools/deploy.sh`, or delete the conflicting project in the Cloudflare dashboard |
+
+### Cost expectations
+
+Cloudflare Pages free tier covers your use case at any realistic traffic level:
+
+- **Bandwidth:** unlimited (genuinely — no cap on the free plan)
+- **Builds:** 500/month (you'll never hit this for a static site)
+- **Custom domains:** unlimited
+- **HTTPS:** free, automatic
+
+The only ongoing cost is a custom domain if you want one ($10/year). Everything else stays $0.
 
 ## Project layout
 
