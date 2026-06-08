@@ -117,7 +117,7 @@ rsync -a \
   ./ "$DEPLOY_DIR/"
 
 info "Ensuring Cloudflare Pages project '$PAGES_PROJECT' exists"
-if ! wrangler pages project list 2>/dev/null | grep -q "^| $PAGES_PROJECT "; then
+if ! wrangler pages project list 2>/dev/null | grep -qw "$PAGES_PROJECT"; then
   info "Creating Cloudflare Pages project '$PAGES_PROJECT'"
   wrangler pages project create "$PAGES_PROJECT" --production-branch=main || \
     err "Failed to create Pages project. Common cause: Cloudflare email not verified — check your inbox or visit https://dash.cloudflare.com/."
