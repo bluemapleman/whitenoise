@@ -12,7 +12,7 @@ cd "$PROJECT_ROOT"
 
 command -v ffmpeg >/dev/null || { echo "ffmpeg not found. brew install ffmpeg" >&2; exit 1; }
 
-DURATION=30          # seconds per loop
+DURATION=300         # seconds per loop (5 min — long enough to mask the loop)
 BITRATE=128k         # AAC bitrate — sweet spot for noise
 SAMPLE_RATE=44100
 
