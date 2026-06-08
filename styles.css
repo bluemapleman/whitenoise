@@ -1,0 +1,34 @@
+:root {
+  --bg: #0d1117;
+  --surface: #1a2332;
+  --surface-2: #0a0e14;
+  --accent: #5a8dff;
+  --text: #e6edf3;
+  --text-dim: rgba(230, 237, 243, 0.5);
+  --text-faint: rgba(230, 237, 243, 0.3);
+  --border: #1a2332;
+  --radius: 10px;
+  --radius-pill: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+}
+
+body {
+  padding-bottom: 76px; /* room for sticky mini-player */
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 18px;
+}
