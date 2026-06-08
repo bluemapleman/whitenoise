@@ -92,6 +92,7 @@ export class AudioEngine {
     if (!this._ctx) return;
     const now = this._ctx.currentTime;
     this._gain.gain.cancelScheduledValues(now);
+    this._gain.gain.setValueAtTime(this._gain.gain.value, now);
     this._gain.gain.linearRampToValueAtTime(this._volume, now + 0.1);
   }
 

@@ -27,8 +27,8 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE);
     await cache.addAll(SHELL);
     // Audio is cached lazily on first fetch — large files block install otherwise.
+    await self.skipWaiting();
   })());
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

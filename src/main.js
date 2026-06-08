@@ -1,4 +1,4 @@
-import { LIBRARY, trackById } from './library.js';
+import { trackById } from './library.js';
 import { State } from './state.js';
 import { AudioEngine } from './audio-engine.js';
 import { SleepTimer } from './sleep-timer.js';
@@ -23,7 +23,12 @@ const media = new MediaSessionBinding({
 async function startPlayback(trackId) {
   const track = trackById(trackId);
   if (!track) return;
-  await engine.play(track);
+  try {
+    await engine.play(track);
+  } catch (err) {
+    console.error('Audio load failed', err);
+    return;
+  }
   const presetMin = state.get().lastTimer;
   timer.start(presetMin);
   timerEndsAt = presetMin === 0 ? Infinity : Date.now() + presetMin * 60_000;
