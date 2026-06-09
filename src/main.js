@@ -10,7 +10,6 @@ import { InfoPanel } from './info-panel.js';
 import { Identity } from './identity.js';
 import { Sync } from './sync.js';
 import { RegisterPrompt } from './register-prompt.js';
-import { CatCompanions } from './cat-companions.js';
 
 const state = new State();
 const engine = new AudioEngine();
@@ -42,9 +41,6 @@ const ambientEl = document.createElement('div');
 ambientEl.className = 'ambient-bg';
 document.body.insertBefore(ambientEl, document.body.firstChild);
 const ambient = new AmbientBg(ambientEl);
-
-// Cats — two static sprites in the lower corners, fade in/out with playback.
-const cats = new CatCompanions();
 
 // Sleep-timer progress bar — sits above the mini-player.
 const progressEl = document.createElement('div');
@@ -95,8 +91,6 @@ async function startPlayback(trackId) {
   ambient.setVolume(state.get().volume);
   ambient.setPlaying();
   ambient.show();
-  if (track.id === 'cat-purr') cats.show();
-  else cats.hide();
   progress.show({
     totalMs: timer.totalMs(),
     endsAt: timerEndsAt,
@@ -119,7 +113,6 @@ function stopPlayback() {
   media.clear();
   ui.hideMiniPlayer();
   ambient.clear();
-  cats.hide();
   progress.hide();
   activeTrack = null;
 }

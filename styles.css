@@ -456,65 +456,6 @@ main {
   padding: 0 4px;
 }
 
-/* ===== Cat companions (bottom corners) ===== */
-.cat-companions {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0;
-  transition: opacity 1500ms ease;
-}
-
-.cat-companions.cats-visible {
-  opacity: 0.85;
-}
-
-.cat {
-  position: fixed;
-  bottom: calc(76px + env(safe-area-inset-bottom) + 8px);  /* sit above mini-player */
-  height: 32vh;
-  max-height: 240px;
-  width: auto;
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
-  will-change: transform;
-}
-
-.cat-tux {
-  left: max(8px, env(safe-area-inset-left));
-  transform-origin: bottom center;
-  animation: cat-breathe-tux 5.4s ease-in-out infinite alternate;
-}
-
-.cat-tabby {
-  right: max(8px, env(safe-area-inset-right));
-  transform-origin: bottom center;
-  animation: cat-breathe-tabby 6.2s ease-in-out infinite alternate;
-}
-
-@keyframes cat-breathe-tux {
-  0%   { transform: scale(1)       translateY(0); }
-  100% { transform: scale(1.018)   translateY(-2px); }
-}
-
-@keyframes cat-breathe-tabby {
-  0%   { transform: scale(1)       translateY(0); }
-  100% { transform: scale(1.022)   translateY(-2px); }
-}
-
-/* On narrow phones, shrink so the cats don't hog the screen */
-@media (max-width: 380px) {
-  .cat { height: 24vh; max-height: 180px; }
-}
-
-/* If the user prefers reduced motion, freeze the breathing */
-@media (prefers-reduced-motion: reduce) {
-  .cat-tux, .cat-tabby { animation: none; }
-}
-
 /* ===== Debug info panel ===== */
 .info-toggle {
   position: fixed;
