@@ -1,6 +1,6 @@
 import { LIBRARY, trackById } from './library.js';
 
-const TIMER_PRESETS = [15, 30, 45, 60, 90, 0];   // 0 means ∞
+const TIMER_PRESETS = [1, 15, 30, 45, 60, 90, 0];   // 1 = test preset; 0 means ∞
 const LONG_PRESS_MS = 500;
 
 export class UI {
