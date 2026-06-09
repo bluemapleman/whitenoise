@@ -52,6 +52,17 @@ fi
 
 ok "Preflight OK"
 
+# ---- Tests --------------------------------------------------------------
+
+if [ -f package.json ] && command -v npx >/dev/null; then
+  info "Running tests"
+  if ! npx --no-install vitest run >/tmp/whitenoise-test.log 2>&1; then
+    cat /tmp/whitenoise-test.log
+    err "Tests failed — fix before deploy. (Override: rm tools/deploy.sh check, but don't.)"
+  fi
+  ok "Tests passed ($(grep -E 'Tests +[0-9]+ passed' /tmp/whitenoise-test.log | tail -1 | awk '{print $2, $3}'))"
+fi
+
 # ---- Commit any pending changes ---------------------------------------
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
