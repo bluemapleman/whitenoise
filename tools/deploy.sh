@@ -116,6 +116,14 @@ rsync -a \
   --exclude 'README.md' \
   ./ "$DEPLOY_DIR/"
 
+# Stamp the service worker with a unique cache version so browsers always
+# get fresh assets on next visit (otherwise the old SW serves stale 404s
+# or stale audio from previous deploys).
+STAMP=$(git rev-parse --short HEAD)$(date +%s 2>/dev/null || echo nodate)
+sed -i.bak -E "s|const CACHE = 'whitenoise-[^']+';|const CACHE = 'whitenoise-${STAMP}';|" "$DEPLOY_DIR/service-worker.js"
+rm -f "$DEPLOY_DIR/service-worker.js.bak"
+info "Stamped service worker cache: whitenoise-${STAMP}"
+
 info "Ensuring Cloudflare Pages project '$PAGES_PROJECT' exists"
 if ! wrangler pages project list 2>/dev/null | grep -qw "$PAGES_PROJECT"; then
   info "Creating Cloudflare Pages project '$PAGES_PROJECT'"

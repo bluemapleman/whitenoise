@@ -1,4 +1,4 @@
-const CACHE = 'whitenoise-v1';
+const CACHE = 'whitenoise-v2';
 
 const SHELL = [
   '/',
