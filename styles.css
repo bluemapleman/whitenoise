@@ -248,6 +248,17 @@ main {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+.tile.tile-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tile.tile-image .tile-label {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  font-weight: 500;
+}
+
 .tile-label {
   pointer-events: none;
 }

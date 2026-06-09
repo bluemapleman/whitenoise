@@ -27,7 +27,7 @@ export const LIBRARY = [
   { id: 'whale',           label: 'Whale song',       gradient: ['#1a2a4f', '#0d1117'], palette: ['#1a2e5e', '#0a1a3a'], file: 'audio/whale.m4a' },
   { id: 'meadow',          label: 'Meadow',           gradient: ['#2a3a1a', '#0d1117'], palette: ['#3a4a1a', '#1a3a2a'], file: 'audio/meadow.m4a' },
   { id: 'city-night',      label: 'City at night',    gradient: ['#2a2a3a', '#0d1117'], palette: ['#3a2a4a', '#1a2a3a'], file: 'audio/city-night.m4a' },
-  { id: 'cat-purr',        label: 'Cat purring',      gradient: ['#3a2a2a', '#0d1117'], palette: ['#3a2a2a', '#2a1f1f'], file: 'audio/cat-purr.m4a' },
+  { id: 'cat-purr',        label: 'Cat purring',      gradient: ['#3a2a2a', '#0d1117'], palette: ['#3a2a2a', '#2a1f1f'], file: 'audio/cat-purr.m4a', image: 'assets/cat-purr-tile.jpg' },
 ];
 
 export function trackById(id) {

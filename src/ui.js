@@ -120,7 +120,12 @@ export class UI {
   _tile(track, s) {
     const el = document.createElement('button');
     el.className = 'tile' + (track.id === s.lastTrackId ? ' active' : '');
-    el.style.background = `linear-gradient(135deg, ${track.gradient[0]}, ${track.gradient[1]})`;
+    if (track.image) {
+      el.classList.add('tile-image');
+      el.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.65) 100%), url('${track.image}')`;
+    } else {
+      el.style.background = `linear-gradient(135deg, ${track.gradient[0]}, ${track.gradient[1]})`;
+    }
     el.innerHTML = `
       <span class="tile-label">${track.label}</span>
       ${s.favorites.includes(track.id) ? '<span class="tile-fav">♥</span>' : ''}

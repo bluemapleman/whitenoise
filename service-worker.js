@@ -21,6 +21,7 @@ const SHELL = [
   '/src/cat-companions.js',
   '/assets/cat-tux.png',
   '/assets/cat-tabby.png',
+  '/assets/cat-purr-tile.jpg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
