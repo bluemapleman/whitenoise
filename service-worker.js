@@ -13,6 +13,7 @@ const SHELL = [
   '/src/media-session.js',
   '/src/ui.js',
   '/src/ambient-bg.js',
+  '/src/timer-progress.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
