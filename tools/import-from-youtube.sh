@@ -40,7 +40,10 @@ want() {
 }
 
 # Parse SOURCES.md table, one track at a time
-mapfile -t ROWS < <(grep -E '^\| `[a-z-]+` \|' "$SOURCES_FILE" || true)
+ROWS=()
+while IFS= read -r line; do
+  ROWS+=("$line")
+done < <(grep -E '^\| `[a-z-]+` \|' "$SOURCES_FILE" || true)
 
 if [ ${#ROWS[@]} -eq 0 ]; then
   err "No track rows found in $SOURCES_FILE"
@@ -79,9 +82,20 @@ for row in "${ROWS[@]}"; do
 
   info "Downloading $id from $url (skip ${skip}s, take ${DURATION}s)"
 
-  # Download best audio-only stream, no postprocessing yet
+  # Download best audio-only stream, no postprocessing yet.
+  # YouTube now blocks unauthenticated yt-dlp; use cookies from Chrome.
+  # (Override with $YTDLP_BROWSER, e.g. firefox/safari/brave.)
+  #
+  # --download-sections tells yt-dlp to only fetch the bytes we need;
+  # massively faster on long-form videos. Falls back to full download if
+  # the format doesn't support range seeks.
+  YTDLP_BROWSER="${YTDLP_BROWSER:-chrome}"
   raw_path="$TMPDIR/${id}.raw"
-  yt-dlp -x --audio-format best -q -o "${raw_path}.%(ext)s" "$url" || {
+  end=$((skip + DURATION + 5))    # +5s safety margin
+  yt-dlp --cookies-from-browser "$YTDLP_BROWSER" \
+    --download-sections "*${skip}-${end}" \
+    --force-keyframes-at-cuts \
+    -x --audio-format best -q -o "${raw_path}.%(ext)s" "$url" || {
     err "Download failed for $id"
     continue
   }
