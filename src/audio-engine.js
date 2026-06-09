@@ -47,6 +47,19 @@ export class AudioEngine {
     this._audio.volume = 0;
     this._currentId = track.id;
 
+    // Start from a random point in the loop so two sessions back-to-back
+    // don't open with the same intro. duration isn't known until metadata
+    // loads — wait for that, then seek before play() so we never hear the
+    // first frame.
+    await this._whenMetadataReady();
+    const dur = this._audio.duration;
+    if (isFinite(dur) && dur > 1) {
+      // Stay 0.5s away from each edge so a brief decode hiccup doesn't
+      // land us on a near-end gap before loop wraps.
+      const offset = 0.5 + Math.random() * Math.max(0.1, dur - 1);
+      try { this._audio.currentTime = offset; } catch {}
+    }
+
     // play() returns a promise — must await so we can surface load failures
     // (e.g. 404, decode error) up to main.js's catch.
     await this._audio.play();
@@ -88,6 +101,23 @@ export class AudioEngine {
   }
 
   // ---- internals ----
+
+  // Resolves once duration is known. readyState >= 1 (HAVE_METADATA) means
+  // we can seek. If metadata is already there, resolve synchronously.
+  _whenMetadataReady() {
+    return new Promise((resolve) => {
+      if (this._audio.readyState >= 1 && isFinite(this._audio.duration)) {
+        resolve(); return;
+      }
+      const done = () => {
+        this._audio.removeEventListener('loadedmetadata', done);
+        this._audio.removeEventListener('error', done);
+        resolve();
+      };
+      this._audio.addEventListener('loadedmetadata', done, { once: true });
+      this._audio.addEventListener('error', done, { once: true });
+    });
+  }
 
   _cancelFade() {
     if (this._fadeTimer) {
