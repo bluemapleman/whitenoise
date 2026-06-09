@@ -12,6 +12,7 @@ export class UI {
     this._countdownInterval = null;
     this._currentEndsAt = 0;
     this._isPlaying = false;
+    this._miniPlayerVisible = false;
     this._render();
     this._state.subscribe(() => this._render());
   }
@@ -190,6 +191,7 @@ export class UI {
     const mp = this._root.querySelector('[data-role="miniplayer"]');
     mp.hidden = false;
     this._isPlaying = true;
+    this._miniPlayerVisible = true;
     this._currentEndsAt = endsAt;
     this._root.querySelector('[data-role="mp-title"]').textContent = track.label;
     this._root.querySelector('[data-role="play-pause"]').textContent = '⏸';
@@ -201,6 +203,7 @@ export class UI {
     const mp = this._root.querySelector('[data-role="miniplayer"]');
     mp.hidden = true;
     this._isPlaying = false;
+    this._miniPlayerVisible = false;
     this._stopCountdown();
   }
 
@@ -227,13 +230,18 @@ export class UI {
 
   _restoreMiniPlayerState() {
     const s = this._state.get();
-    if (this._isPlaying) {
-      const track = trackById(s.lastTrackId);
-      const mp = this._root.querySelector('[data-role="miniplayer"]');
+    const track = trackById(s.lastTrackId);
+    if (!track) return;
+    // _render() rebuilt the DOM; restore both visible state AND title.
+    // Title must survive the paused state too — otherwise toggling volume
+    // (which triggers a re-render via state.update) wipes the label to "—".
+    const mp = this._root.querySelector('[data-role="miniplayer"]');
+    if (this._miniPlayerVisible) {
       mp.hidden = false;
-      this._root.querySelector('[data-role="play-pause"]').textContent = '⏸';
-      this._root.querySelector('[data-role="mp-title"]').textContent = track ? track.label : '—';
-      this._startCountdown();
+      this._root.querySelector('[data-role="mp-title"]').textContent = track.label;
+      this._root.querySelector('[data-role="play-pause"]').textContent = this._isPlaying ? '⏸' : '▶';
+      this._refreshFavButton();
+      if (this._isPlaying) this._startCountdown();
     }
   }
 

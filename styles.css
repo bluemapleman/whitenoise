@@ -427,7 +427,7 @@ main {
 }
 
 .mp-fav.mp-fav-on {
-  color: var(--accent);
+  color: #ff9bb6;   /* light pink — distinct from accent blue */
 }
 
 .mp-volume {
