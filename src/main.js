@@ -116,6 +116,7 @@ function playLast() {
 ui = new UI({
   root: document.getElementById('app'),
   state,
+  identity,
   onPlay: (id) => startPlayback(id),
   onPause: () => pausePlayback(),
   onSelectTimer: (preset) => state.update({ lastTimer: preset }),
@@ -135,7 +136,10 @@ new InfoPanel({ identity });
 const registerPrompt = new RegisterPrompt({
   identity,
   sync,
-  onRegistered: () => sync.pullAndMerge(),
+  onRegistered: () => {
+    ui.refreshTitle();
+    sync.pullAndMerge();
+  },
 });
 if (registerPrompt.shouldShow()) {
   // Defer slightly so the page paints before the modal interrupts

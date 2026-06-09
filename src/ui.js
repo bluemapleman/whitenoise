@@ -4,9 +4,10 @@ const TIMER_PRESETS = [15, 30, 45, 60, 90, 0];   // 0 means ∞
 const LONG_PRESS_MS = 500;
 
 export class UI {
-  constructor({ root, state, onPlay, onPause, onSelectTimer, onToggleFavorite, onSetVolume, onMiniPlayerTimerTap }) {
+  constructor({ root, state, identity, onPlay, onPause, onSelectTimer, onToggleFavorite, onSetVolume, onMiniPlayerTimerTap }) {
     this._root = root;
     this._state = state;
+    this._identity = identity || null;
     this._on = { onPlay, onPause, onSelectTimer, onToggleFavorite, onSetVolume, onMiniPlayerTimerTap };
     this._countdownInterval = null;
     this._currentEndsAt = 0;
@@ -24,7 +25,7 @@ export class UI {
       </div>
 
       <header class="hdr">
-        <div class="title">Tonight</div>
+        <div class="title" data-role="title">${this._titleHtml()}</div>
       </header>
 
       <section>
@@ -59,6 +60,27 @@ export class UI {
     this._wireMiniPlayer();
     this._wireInstallHint();
     this._restoreMiniPlayerState();
+  }
+
+  // Build the page title. Personalized when a username is set; generic
+  // otherwise. Username is restricted to [a-z0-9_-] server-side, but we
+  // escape regardless — defence in depth and keeps the regex change-safe.
+  _titleHtml() {
+    const username = this._identity?.username();
+    if (username) {
+      const safe = String(username).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[ch]));
+      return `Hey <span class="title-username">${safe}</span>, have a sweet night!`;
+    }
+    return 'Have a sweet night!';
+  }
+
+  // Called externally after a successful username registration so the title
+  // updates without forcing a full state-induced re-render.
+  refreshTitle() {
+    const el = this._root.querySelector('[data-role="title"]');
+    if (el) el.innerHTML = this._titleHtml();
   }
 
   _renderTimerChips(s) {

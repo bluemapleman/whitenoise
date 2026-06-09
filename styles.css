@@ -188,6 +188,11 @@ main {
   font-weight: 300;
 }
 
+.title-username {
+  color: var(--accent);
+  font-weight: 400;
+}
+
 .label {
   font-size: 10px;
   letter-spacing: 0.12em;
