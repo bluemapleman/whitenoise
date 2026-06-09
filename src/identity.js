@@ -1,7 +1,8 @@
 // Per-browser identity. Manages:
-//   - deviceId: a UUID generated on first visit, stable for the life of this
-//     browser's localStorage. Same browser = same id; different browser /
-//     different device / cleared data = different id.
+//   - browserInstanceId: a UUID generated on first visit, stable for the life
+//     of this browser's localStorage. Same browser = same id; different
+//     browser / different device / cleared data = different id. NOT a device
+//     identifier — it's per browser-storage instance.
 //   - visitCount: incremented on every page load. Used to defer the username
 //     prompt until the second visit (better conversion than asking on cold
 //     first load).
@@ -15,8 +16,8 @@ const STORAGE_KEY = 'whitenoise.identity';
 export class Identity {
   constructor() {
     this._data = this._load();
-    if (!this._data.deviceId) {
-      this._data.deviceId = this._generateId();
+    if (!this._data.browserInstanceId) {
+      this._data.browserInstanceId = this._generateId();
       this._data.createdAt = new Date().toISOString();
     }
     this._data.visitCount = (this._data.visitCount || 0) + 1;
@@ -49,7 +50,7 @@ export class Identity {
     });
   }
 
-  deviceId() { return this._data.deviceId; }
+  browserInstanceId() { return this._data.browserInstanceId; }
   createdAt() { return this._data.createdAt || null; }
   visitCount() { return this._data.visitCount; }
   username() { return this._data.username || null; }

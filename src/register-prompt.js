@@ -1,6 +1,6 @@
 // Modal that appears on the visitor's second visit, offering optional
 // cross-device sync via a username. No password — see backend doc for the
-// "low risk + deviceId-bound" trade-offs.
+// "low risk + browserInstanceId-bound" trade-offs.
 //
 // Dismissable. Once dismissed, never shown again unless localStorage is cleared.
 

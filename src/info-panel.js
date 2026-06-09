@@ -72,7 +72,7 @@ export class InfoPanel {
   }
 
   _refresh() {
-    // Identity — deviceId + username + visit count
+    // Identity — browserInstanceId + username + visit count
     if (this._identity) {
       this._identityEl.textContent = JSON.stringify(this._identity.getAll(), null, 2);
     } else {

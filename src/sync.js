@@ -26,7 +26,7 @@ export class Sync {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         username,
-        deviceId: this._identity.deviceId(),
+        browserInstanceId: this._identity.browserInstanceId(),
         state: this._state.get(),
       }),
     });
@@ -62,7 +62,7 @@ export class Sync {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           username,
-          deviceId: this._identity.deviceId(),
+          browserInstanceId: this._identity.browserInstanceId(),
           state: this._state.get(),
         }),
       });
