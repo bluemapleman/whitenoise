@@ -11,6 +11,7 @@ export class UI {
     this._on = { onPlay, onPause, onSelectTimer, onToggleFavorite, onSetVolume, onMiniPlayerTimerTap };
     this._countdownInterval = null;
     this._currentEndsAt = 0;
+    this._frozenRemainingMs = null;   // when paused, what to display
     this._isPlaying = false;
     this._miniPlayerVisible = false;
     this._render();
@@ -192,6 +193,7 @@ export class UI {
     mp.hidden = false;
     this._isPlaying = true;
     this._miniPlayerVisible = true;
+    this._frozenRemainingMs = null;
     this._currentEndsAt = endsAt;
     this._root.querySelector('[data-role="mp-title"]').textContent = track.label;
     this._root.querySelector('[data-role="play-pause"]').textContent = '⏸';
@@ -209,8 +211,17 @@ export class UI {
 
   setMiniPlayerPaused() {
     this._isPlaying = false;
+    // Freeze the remaining time at pause moment so re-renders (e.g. volume
+    // slider) keep showing the same value instead of an empty placeholder
+    // or a continuing countdown.
+    if (isFinite(this._currentEndsAt) && this._currentEndsAt > 0) {
+      this._frozenRemainingMs = Math.max(0, this._currentEndsAt - Date.now());
+    } else if (this._currentEndsAt === Infinity) {
+      this._frozenRemainingMs = Infinity;
+    }
     this._root.querySelector('[data-role="play-pause"]').textContent = '▶';
     this._stopCountdown();
+    this._paintCountdown();
   }
 
   _wireInstallHint() {
@@ -241,27 +252,39 @@ export class UI {
       this._root.querySelector('[data-role="mp-title"]').textContent = track.label;
       this._root.querySelector('[data-role="play-pause"]').textContent = this._isPlaying ? '⏸' : '▶';
       this._refreshFavButton();
+      this._paintCountdown();   // paint frozen value even when paused
       if (this._isPlaying) this._startCountdown();
     }
   }
 
+  // Write the current countdown value into mp-sub once. Used both by the
+  // 1Hz interval and by _restoreMiniPlayerState so a paused mini-player
+  // keeps its remaining-time label after a re-render.
+  _paintCountdown() {
+    const sub = this._root.querySelector('[data-role="mp-sub"]');
+    if (!sub) return;
+    // When paused, display the frozen value captured at pause time.
+    // When playing, compute live from _currentEndsAt.
+    let ms;
+    if (this._isPlaying) {
+      if (this._currentEndsAt === Infinity) { sub.textContent = 'no timer'; return; }
+      if (!this._currentEndsAt) { sub.textContent = 'no timer'; return; }
+      ms = Math.max(0, this._currentEndsAt - Date.now());
+    } else {
+      if (this._frozenRemainingMs === null) { sub.textContent = '—'; return; }
+      if (this._frozenRemainingMs === Infinity) { sub.textContent = 'no timer'; return; }
+      ms = this._frozenRemainingMs;
+    }
+    const totalSec = Math.floor(ms / 1000);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    sub.textContent = `${m}:${String(s).padStart(2, '0')}`;
+  }
+
   _startCountdown() {
     this._stopCountdown();
-    const tick = () => {
-      const sub = this._root.querySelector('[data-role="mp-sub"]');
-      if (!sub) return;
-      if (!isFinite(this._currentEndsAt)) {
-        sub.textContent = 'no timer';
-        return;
-      }
-      const ms = Math.max(0, this._currentEndsAt - Date.now());
-      const totalSec = Math.floor(ms / 1000);
-      const m = Math.floor(totalSec / 60);
-      const s = totalSec % 60;
-      sub.textContent = `${m}:${String(s).padStart(2, '0')}`;
-    };
-    tick();
-    this._countdownInterval = setInterval(tick, 1000);
+    this._paintCountdown();
+    this._countdownInterval = setInterval(() => this._paintCountdown(), 1000);
   }
 
   _stopCountdown() {
