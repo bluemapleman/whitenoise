@@ -19,9 +19,10 @@ command -v ffmpeg >/dev/null || { echo "ffmpeg not found. brew install ffmpeg" >
 
 SOURCES_FILE="audio/SOURCES.md"
 LICENSES_FILE="audio/LICENSES.md"
-DURATION=300         # 5-minute segment per track
+DURATION=600         # 10-minute segment per track (cuts repeat-loop fatigue)
 DEFAULT_SKIP=60      # skip first 60s by default to avoid cold-opens
 BITRATE=128k
+FORCE="${FORCE:-0}"  # FORCE=1 → overwrite existing files
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
@@ -75,8 +76,8 @@ for row in "${ROWS[@]}"; do
   fi
 
   out="audio/${id}.m4a"
-  if [ -f "$out" ]; then
-    warn "$out already exists — delete first to re-import. Skipping $id."
+  if [ -f "$out" ] && [ "$FORCE" != "1" ]; then
+    warn "$out already exists — set FORCE=1 to re-import. Skipping $id."
     continue
   fi
 
@@ -107,10 +108,12 @@ for row in "${ROWS[@]}"; do
     continue
   fi
 
+  # yt-dlp's --download-sections already trimmed the file to start at $skip.
+  # ffmpeg only needs to take $DURATION seconds and transcode to mono AAC.
   echo "  → transcoding to $out"
   ffmpeg -hide_banner -loglevel error -y \
-    -ss "$skip" -t "$DURATION" \
     -i "$raw_file" \
+    -t "$DURATION" \
     -ac 1 -ar 44100 \
     -c:a aac -b:a "$BITRATE" \
     "$out"
@@ -124,7 +127,7 @@ import re
 path = '$LICENSES_FILE'
 with open(path) as f: content = f.read()
 pattern = r'^\| ${id}\.m4a \| .*$'
-new_row = f'| ${id}.m4a | YouTube: $url | TBD (verify before public ship) | imported via tools/import-from-youtube.sh, 5-min segment from offset ${skip}s |'
+new_row = f'| ${id}.m4a | YouTube: $url | TBD (verify before public ship) | imported via tools/import-from-youtube.sh, 10-min segment from offset ${skip}s |'
 content = re.sub(pattern, new_row, content, flags=re.MULTILINE)
 with open(path, 'w') as f: f.write(content)
 "

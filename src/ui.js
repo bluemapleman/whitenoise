@@ -51,7 +51,14 @@ export class UI {
           <div class="mp-title" data-role="mp-title">—</div>
           <div class="mp-sub" data-role="mp-sub">—</div>
         </div>
-        <button class="mp-fav" data-role="mp-fav" aria-label="Toggle favorite" type="button">♥</button>
+        <button class="mp-fav" data-role="mp-fav" aria-label="Toggle favorite" type="button" aria-pressed="false">
+          <svg class="mp-fav-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+          </svg>
+          <svg class="mp-fav-solid" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001z"/>
+          </svg>
+        </button>
         <button class="mp-timer" data-role="mp-timer">⏱ ${s.lastTimer === 0 ? '∞' : s.lastTimer + 'm'}</button>
         <input class="mp-volume" type="range" min="0" max="1" step="0.01" value="${s.volume}" data-role="volume">
       </div>
@@ -128,9 +135,13 @@ export class UI {
     } else {
       el.style.background = `linear-gradient(135deg, ${track.gradient[0]}, ${track.gradient[1]})`;
     }
+    const isFav = s.favorites.includes(track.id);
     el.innerHTML = `
       <span class="tile-label">${track.label}</span>
-      ${s.favorites.includes(track.id) ? '<span class="tile-fav">♥</span>' : ''}
+      ${isFav ? `
+        <svg class="tile-fav" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001z"/>
+        </svg>` : ''}
     `;
     el.addEventListener('click', () => this._on.onPlay(track.id));
     this._wireLongPress(el, () => this._on.onToggleFavorite(track.id));

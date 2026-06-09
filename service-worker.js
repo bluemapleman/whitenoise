@@ -28,6 +28,11 @@ const TRACK_IDS = [
   'river', 'fireplace', 'crickets', 'brown-noise', 'pink-noise', 'white-noise', 'fan',
   'cafe', 'train-cabin', 'library', 'waterfall', 'blizzard', 'dryer', 'airplane',
   'rainforest', 'cave', 'whale', 'meadow', 'city-night', 'cat-purr',
+  'night-rain-window', 'night-forest', 'mountain-stream',
+  'night-wind-pines', 'alpine-meadow', 'bamboo-forest', 'autumn-forest',
+  'forest-rain', 'night-owls', 'night-pond', 'city-rain', 'subway-station',
+  'harbor-fog', 'rooftop-night', 'rain-tent', 'campfire-night',
+  'cabin-rain', 'wolf-howl-distant',
 ];
 const AUDIO = TRACK_IDS.map(id => `/audio/${id}.m4a`);
 
