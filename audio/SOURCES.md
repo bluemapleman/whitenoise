@@ -18,6 +18,18 @@ The script downloads the audio, transcodes to mono AAC at 128 kbps, and trims a 
 | `fireplace` | https://www.youtube.com/watch?v=7mnewZMHrsg@180 | 10 Hours Relaxing Fireplace, NO MUSIC |
 | `crickets` | https://www.youtube.com/watch?v=g1w3IT5WnYw@180 | Night Ambient Sounds, Cricket, 10h |
 | `fan` | https://www.youtube.com/watch?v=px1PqCX6i8c@180 | Box Fan White Noise, 10h |
+| `cafe` | https://www.youtube.com/watch?v=uU_RxnJOdMQ@180 | ASMR Coffee Shop, 7h, NO MUSIC |
+| `train-cabin` | https://www.youtube.com/watch?v=vXCB1zGGFiY@180 | Long Train Ride through Switzerland, 8.5h |
+| `library` | https://www.youtube.com/watch?v=tJRf_TH2Je4@180 | Cozy Victorian Library — fireplace + page turning, 10h |
+| `waterfall` | https://www.youtube.com/watch?v=WwSFmC5FtX0@180 | Peaceful Waterfall, 10h |
+| `blizzard` | https://www.youtube.com/watch?v=9GZsa-hD2uw@180 | Intense Freezing Blizzard at the lake, 10h |
+| `dryer` | https://www.youtube.com/watch?v=3FYynRLz6Qk@180 | Clothes Dryer, 9h black screen |
+| `airplane` | https://www.youtube.com/watch?v=co7KgV2edvI@180 | Airplane Cabin White Noise, 10h |
+| `rainforest` | https://www.youtube.com/watch?v=FUQEecZ0HG0@180 | Tropical Rainforest Ambience, 10h |
+| `cave` | https://www.youtube.com/watch?v=OM7MJM0STok@180 | Cozy Rainy Thunder Cave + bonfire, 10h |
+| `whale` | https://www.youtube.com/watch?v=nDqP7kcr-sc@180 | 8 Hours Whale Sounds Deep Underwater |
+| `meadow` | https://www.youtube.com/watch?v=ipf7ifVSeDU@180 | Relaxing Meadow with Wildflowers, 8h |
+| `city-night` | https://www.youtube.com/watch?v=eZcTP-XynnA@180 | NYC Night Sounds — distant traffic, 5.5h |
 
 ## Suggested searches
 
