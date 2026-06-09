@@ -3,6 +3,10 @@
 //
 // Drag direction: drag the right edge inward (left) to shorten remaining time.
 // (Or equivalently: tap further right = less remaining.)
+//
+// Uses both pointer events (modern) and touch events (iOS Safari fallback) —
+// pointermove can be dropped by Safari during touch interactions in some
+// gesture-eligible regions, so the touch handlers ensure smooth dragging.
 
 const TICK_MS = 250;
 
@@ -14,7 +18,8 @@ export class TimerProgress {
     this._endsAt = 0;
     this._tickInterval = null;
     this._dragging = false;
-    this._paletteColor = '';
+    this._pendingFraction = null;
+    this._rafId = null;
 
     root.innerHTML = `
       <div class="tp-fill" data-role="tp-fill"></div>
@@ -23,7 +28,7 @@ export class TimerProgress {
     this._fillEl = root.querySelector('[data-role="tp-fill"]');
     this._handleEl = root.querySelector('[data-role="tp-handle"]');
 
-    this._wirePointer();
+    this._wireInput();
   }
 
   show({ totalMs, endsAt, paletteColor }) {
@@ -33,9 +38,8 @@ export class TimerProgress {
     }
     this._totalMs = totalMs;
     this._endsAt = endsAt;
-    this._paletteColor = paletteColor || '';
-    if (this._paletteColor) {
-      this._root.style.setProperty('--tp-fill-color', this._paletteColor);
+    if (paletteColor) {
+      this._root.style.setProperty('--tp-fill-color', paletteColor);
     }
     this._root.classList.add('tp-visible');
     this._tick();
@@ -78,48 +82,112 @@ export class TimerProgress {
     this._handleEl.style.left = pct + '%';
   }
 
-  _fractionFromEvent(ev) {
-    const rect = this._root.getBoundingClientRect();
-    const x = ev.clientX - rect.left;
-    return Math.max(0, Math.min(1, x / rect.width));
+  _scheduleSetFraction(f) {
+    this._pendingFraction = f;
+    if (this._rafId !== null) return;
+    this._rafId = requestAnimationFrame(() => {
+      this._rafId = null;
+      if (this._pendingFraction !== null) {
+        this._setFraction(this._pendingFraction);
+        this._pendingFraction = null;
+      }
+    });
   }
 
-  _wirePointer() {
+  _fractionFromClientX(clientX) {
+    const rect = this._root.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  }
+
+  _beginDrag(clientX) {
+    if (!this._totalMs) return;
+    this._dragging = true;
+    this._root.classList.add('tp-active');
+    this._scheduleSetFraction(this._fractionFromClientX(clientX));
+  }
+
+  _moveDrag(clientX) {
+    if (!this._dragging) return;
+    this._scheduleSetFraction(this._fractionFromClientX(clientX));
+  }
+
+  _endDrag(clientX) {
+    if (!this._dragging) return;
+    this._dragging = false;
+    this._root.classList.remove('tp-active');
+    if (this._rafId !== null) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = null;
+      this._pendingFraction = null;
+    }
+    const f = this._fractionFromClientX(clientX);
+    this._setFraction(f);
+    const newRemainingMs = (1 - f) * this._totalMs;
+    this._onSeek(newRemainingMs);
+  }
+
+  _wireInput() {
     let activePointerId = null;
 
-    const onDown = (ev) => {
+    // ---- Pointer events (works in modern Chrome, Firefox, Edge, modern iOS) ----
+
+    const onPointerDown = (ev) => {
+      if (ev.pointerType === 'touch') return;   // touch events handle this
       if (!this._totalMs) return;
       activePointerId = ev.pointerId;
-      this._dragging = true;
-      this._root.setPointerCapture(ev.pointerId);
-      this._root.classList.add('tp-active');
-      const f = this._fractionFromEvent(ev);
-      this._setFraction(f);
+      try { this._root.setPointerCapture(ev.pointerId); } catch {}
+      this._beginDrag(ev.clientX);
       ev.preventDefault();
     };
 
-    const onMove = (ev) => {
+    const onPointerMove = (ev) => {
       if (ev.pointerId !== activePointerId) return;
-      const f = this._fractionFromEvent(ev);
-      this._setFraction(f);
+      this._moveDrag(ev.clientX);
+      ev.preventDefault();
     };
 
-    const onUp = (ev) => {
+    const onPointerUp = (ev) => {
       if (ev.pointerId !== activePointerId) return;
       activePointerId = null;
-      this._dragging = false;
-      this._root.classList.remove('tp-active');
       try { this._root.releasePointerCapture(ev.pointerId); } catch {}
-      const f = this._fractionFromEvent(ev);
-      const newRemainingMs = (1 - f) * this._totalMs;
-      // Tell the controller; it will call syncEnd() with the resulting endsAt
-      // (or hide() if the seek lands at 0).
-      this._onSeek(newRemainingMs);
+      this._endDrag(ev.clientX);
     };
 
-    this._root.addEventListener('pointerdown', onDown);
-    this._root.addEventListener('pointermove', onMove);
-    this._root.addEventListener('pointerup', onUp);
-    this._root.addEventListener('pointercancel', onUp);
+    this._root.addEventListener('pointerdown', onPointerDown);
+    this._root.addEventListener('pointermove', onPointerMove);
+    this._root.addEventListener('pointerup', onPointerUp);
+    this._root.addEventListener('pointercancel', onPointerUp);
+
+    // ---- Touch events (iOS Safari fallback for reliable drag) ----
+    // iOS sometimes silently swallows pointermove inside touch-action regions.
+    // Touch events are more reliable on iOS for continuous drag tracking.
+
+    const onTouchStart = (ev) => {
+      if (!this._totalMs) return;
+      const t = ev.changedTouches[0];
+      if (!t) return;
+      this._beginDrag(t.clientX);
+      ev.preventDefault();
+    };
+
+    const onTouchMove = (ev) => {
+      if (!this._dragging) return;
+      const t = ev.changedTouches[0];
+      if (!t) return;
+      this._moveDrag(t.clientX);
+      ev.preventDefault();
+    };
+
+    const onTouchEnd = (ev) => {
+      if (!this._dragging) return;
+      const t = ev.changedTouches[0];
+      if (!t) return;
+      this._endDrag(t.clientX);
+    };
+
+    this._root.addEventListener('touchstart', onTouchStart, { passive: false });
+    this._root.addEventListener('touchmove', onTouchMove, { passive: false });
+    this._root.addEventListener('touchend', onTouchEnd);
+    this._root.addEventListener('touchcancel', onTouchEnd);
   }
 }
