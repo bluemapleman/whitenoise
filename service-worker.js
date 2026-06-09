@@ -29,7 +29,7 @@ const TRACK_IDS = [
   'rain-light', 'rain-heavy', 'thunder', 'ocean', 'forest', 'mountain-breeze',
   'river', 'fireplace', 'crickets', 'brown-noise', 'pink-noise', 'white-noise', 'fan',
   'cafe', 'train-cabin', 'library', 'waterfall', 'blizzard', 'dryer', 'airplane',
-  'rainforest', 'cave', 'whale', 'meadow', 'city-night',
+  'rainforest', 'cave', 'whale', 'meadow', 'city-night', 'cat-purr',
 ];
 const AUDIO = TRACK_IDS.map(id => `/audio/${id}.m4a`);
 

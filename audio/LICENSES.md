@@ -30,3 +30,4 @@ Do not ship the app without this file fully populated.
 | whale.m4a | YouTube: https://www.youtube.com/watch?v=nDqP7kcr-sc | TBD (verify before public ship) | imported via tools/import-from-youtube.sh, 5-min segment from offset 180s |
 | meadow.m4a | YouTube: https://www.youtube.com/watch?v=ipf7ifVSeDU | TBD (verify before public ship) | imported via tools/import-from-youtube.sh, 5-min segment from offset 180s |
 | city-night.m4a | YouTube: https://www.youtube.com/watch?v=eZcTP-XynnA | TBD (verify before public ship) | imported via tools/import-from-youtube.sh, 5-min segment from offset 180s |
+| cat-purr.m4a | YouTube: https://www.youtube.com/watch?v=DF_RF3q6tAU | TBD (verify before public ship) | imported via tools/import-from-youtube.sh, 5-min segment from offset 180s |

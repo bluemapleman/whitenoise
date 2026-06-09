@@ -95,7 +95,8 @@ async function startPlayback(trackId) {
   ambient.setVolume(state.get().volume);
   ambient.setPlaying();
   ambient.show();
-  cats.show();
+  if (track.id === 'cat-purr') cats.show();
+  else cats.hide();
   progress.show({
     totalMs: timer.totalMs(),
     endsAt: timerEndsAt,

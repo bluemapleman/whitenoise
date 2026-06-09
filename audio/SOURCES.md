@@ -30,6 +30,7 @@ The script downloads the audio, transcodes to mono AAC at 128 kbps, and trims a 
 | `whale` | https://www.youtube.com/watch?v=nDqP7kcr-sc@180 | 8 Hours Whale Sounds Deep Underwater |
 | `meadow` | https://www.youtube.com/watch?v=ipf7ifVSeDU@180 | Relaxing Meadow with Wildflowers, 8h |
 | `city-night` | https://www.youtube.com/watch?v=eZcTP-XynnA@180 | NYC Night Sounds — distant traffic, 5.5h |
+| `cat-purr` | https://www.youtube.com/watch?v=DF_RF3q6tAU@180 | Cat Purring, 10h, black screen, no music |
 
 ## Suggested searches
 
