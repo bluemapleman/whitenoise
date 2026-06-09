@@ -1,77 +1,61 @@
+// HTMLAudioElement-based engine. Chosen over Web Audio API because iOS
+// Safari aggressively suspends AudioContext when the screen locks or the
+// tab backgrounds — <audio> elements survive lock-screen and integrate
+// with the MediaSession lock-screen widget. AAC + loop=true is rock-solid
+// across all browsers.
+//
+// Fade-in / fade-out is driven by a JS interval ramping audio.volume
+// linearly. ~16ms tick gives a smooth ramp that's indistinguishable from
+// Web Audio's GainNode for our use case (long fades, no audible discontinuities).
+
 const FADE_IN_DEFAULT_MS = 2000;
+const FADE_TICK_MS = 16;          // ~60fps; smooth to the ear
 
 export class AudioEngine {
   constructor() {
-    this._ctx = null;
-    this._gain = null;
-    this._source = null;
-    this._buffers = new Map();   // id -> AudioBuffer
-    this._volume = 0.7;
+    this._audio = null;            // single reused HTMLAudioElement
+    this._volume = 0.7;            // user's "max" volume; 0..1
     this._currentId = null;
-    this._loadingPromises = new Map();  // id -> Promise<AudioBuffer>
+    this._fadeTimer = null;
   }
 
-  // Must be called from a user-gesture handler the first time.
-  _ensureContext() {
-    if (this._ctx) return;
-    const Ctor = window.AudioContext || window.webkitAudioContext;
-    this._ctx = new Ctor();
-    this._gain = this._ctx.createGain();
-    this._gain.gain.value = 0;
-    this._gain.connect(this._ctx.destination);
-  }
-
-  async _loadBuffer(track) {
-    if (this._buffers.has(track.id)) return this._buffers.get(track.id);
-    if (this._loadingPromises.has(track.id)) return this._loadingPromises.get(track.id);
-
-    const promise = (async () => {
-      const res = await fetch(track.file);
-      if (!res.ok) throw new Error(`Failed to load ${track.file}: ${res.status}`);
-      const data = await res.arrayBuffer();
-      const buf = await this._ctx.decodeAudioData(data);
-      this._buffers.set(track.id, buf);
-      this._loadingPromises.delete(track.id);
-      return buf;
-    })();
-
-    this._loadingPromises.set(track.id, promise);
-    return promise;
-  }
-
-  _stopSource() {
-    if (this._source) {
-      try { this._source.stop(); } catch {}
-      this._source.disconnect();
-      this._source = null;
-    }
+  _ensureElement() {
+    if (this._audio) return;
+    const a = new Audio();
+    a.loop = true;
+    a.preload = 'auto';
+    a.crossOrigin = 'anonymous';   // harmless on same-origin; lets us cache via SW
+    // Critical iOS hints: playsinline keeps audio out of fullscreen,
+    // and we set volume directly. We do NOT set src yet — that happens
+    // in play() so the user gesture chain stays intact.
+    this._audio = a;
   }
 
   async play(track, fadeInMs = FADE_IN_DEFAULT_MS) {
-    this._ensureContext();
-    if (this._ctx.state === 'suspended') await this._ctx.resume();
+    this._ensureElement();
+    this._cancelFade();
 
-    const buf = await this._loadBuffer(track);
-    this._stopSource();
+    // If already playing this track, just ramp volume back up
+    if (this._currentId === track.id && !this._audio.paused) {
+      this._fadeTo(this._volume, fadeInMs);
+      return;
+    }
 
-    const src = this._ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    src.connect(this._gain);
-
-    const now = this._ctx.currentTime;
-    this._gain.gain.cancelScheduledValues(now);
-    this._gain.gain.setValueAtTime(0, now);
-    this._gain.gain.linearRampToValueAtTime(this._volume, now + fadeInMs / 1000);
-
-    src.start(0);
-    this._source = src;
+    // Switch source. Setting src + load() during a user gesture (tile tap)
+    // is what unlocks iOS audio for subsequent programmatic playback.
+    this._audio.src = track.file;
+    this._audio.volume = 0;
     this._currentId = track.id;
+
+    // play() returns a promise — must await so we can surface load failures
+    // (e.g. 404, decode error) up to main.js's catch.
+    await this._audio.play();
+    this._fadeTo(this._volume, fadeInMs);
   }
 
   pause() {
-    if (!this._ctx) return;
-    this._stopSource();
+    this._cancelFade();
+    if (this._audio) this._audio.pause();
     this._currentId = null;
   }
 
@@ -79,28 +63,55 @@ export class AudioEngine {
     this.pause();
   }
 
+  // Linear ramp this._audio.volume to 0 over `ms`. Used by SleepTimer.
   fadeOut(ms) {
-    if (!this._ctx || !this._source) return;
-    const now = this._ctx.currentTime;
-    this._gain.gain.cancelScheduledValues(now);
-    this._gain.gain.setValueAtTime(this._gain.gain.value, now);
-    this._gain.gain.linearRampToValueAtTime(0, now + ms / 1000);
+    this._fadeTo(0, ms);
   }
 
   setVolume(v) {
     this._volume = Math.max(0, Math.min(1, v));
-    if (!this._ctx) return;
-    const now = this._ctx.currentTime;
-    this._gain.gain.cancelScheduledValues(now);
-    this._gain.gain.setValueAtTime(this._gain.gain.value, now);
-    this._gain.gain.linearRampToValueAtTime(this._volume, now + 0.1);
+    if (!this._audio) return;
+    // Snap to new max immediately if no fade is active. If a fade is active
+    // (e.g. mid fade-out), don't override it — the ramp will end at its
+    // own target and subsequent plays will use the new max.
+    if (!this._fadeTimer) {
+      this._audio.volume = this._volume;
+    }
   }
 
   isPlaying() {
-    return this._source !== null;
+    return this._audio !== null && !this._audio.paused;
   }
 
   currentTrackId() {
     return this._currentId;
+  }
+
+  // ---- internals ----
+
+  _cancelFade() {
+    if (this._fadeTimer) {
+      clearInterval(this._fadeTimer);
+      this._fadeTimer = null;
+    }
+  }
+
+  _fadeTo(target, ms) {
+    this._cancelFade();
+    if (!this._audio) return;
+
+    const start = this._audio.volume;
+    const delta = target - start;
+    if (Math.abs(delta) < 0.001 || ms <= 0) {
+      this._audio.volume = target;
+      return;
+    }
+
+    const startedAt = performance.now();
+    this._fadeTimer = setInterval(() => {
+      const t = Math.min(1, (performance.now() - startedAt) / ms);
+      this._audio.volume = Math.max(0, Math.min(1, start + delta * t));
+      if (t >= 1) this._cancelFade();
+    }, FADE_TICK_MS);
   }
 }
