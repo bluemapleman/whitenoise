@@ -584,8 +584,27 @@ main {
   outline: none;
 }
 
+.register-card input + input {
+  margin-top: 8px;
+}
+
 .register-card input:focus {
   border-color: var(--accent);
+}
+
+.register-toggle {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.register-toggle a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.register-toggle a:hover {
+  text-decoration: underline;
 }
 
 .register-error {

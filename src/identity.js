@@ -8,8 +8,10 @@
 //     first load).
 //   - username: optional cross-device sync handle the user picks. Stored
 //     locally so we know who to fetch from the API on next load.
+//   - sessionToken / sessionExpiresAt: opaque server-issued token (30-day
+//     TTL) that authenticates write requests. Cleared on 401.
 //
-// All three live in localStorage under the whitenoise.identity key.
+// Everything lives in localStorage under the whitenoise.identity key.
 
 const STORAGE_KEY = 'whitenoise.identity';
 
@@ -54,16 +56,29 @@ export class Identity {
   createdAt() { return this._data.createdAt || null; }
   visitCount() { return this._data.visitCount; }
   username() { return this._data.username || null; }
+  sessionToken() { return this._data.sessionToken || null; }
+  sessionExpiresAt() { return this._data.sessionExpiresAt || null; }
 
-  // Save the username locally. Caller is responsible for verifying it's
-  // available on the server before calling this.
-  setUsername(username) {
+  // True if there's a non-expired session token for the current username.
+  hasValidSession() {
+    if (!this._data.username || !this._data.sessionToken) return false;
+    const exp = this._data.sessionExpiresAt;
+    if (!exp) return true;     // pre-existing tokens without expiry → trust them
+    return Date.parse(exp) > Date.now();
+  }
+
+  // Save credentials together — username and session always change as a pair.
+  setSession({ username, sessionToken, sessionExpiresAt }) {
     this._data.username = username;
+    this._data.sessionToken = sessionToken;
+    this._data.sessionExpiresAt = sessionExpiresAt;
     this._save();
   }
 
-  clearUsername() {
+  clearSession() {
     delete this._data.username;
+    delete this._data.sessionToken;
+    delete this._data.sessionExpiresAt;
     this._save();
   }
 

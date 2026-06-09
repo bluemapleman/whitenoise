@@ -14,14 +14,23 @@ import { RegisterPrompt } from './register-prompt.js';
 const state = new State();
 const engine = new AudioEngine();
 const identity = new Identity();
-const sync = new Sync({ identity, state });
+
+// onSessionExpired fires when a write returns 401 (expired/revoked token).
+// We surface a re-auth modal — built later, after the rest is wired.
+let registerPrompt;
+const sync = new Sync({
+  identity,
+  state,
+  onSessionExpired: () => { if (registerPrompt) registerPrompt.showForReauth(); },
+});
+
 let timerEndsAt = 0;
 let activeTrack = null;
 let ui;
 
-// If the user already registered a username, pull-and-merge their remote
-// state on load. After merge, future state changes write back (debounced).
-if (identity.username()) {
+// If the user has a valid session, pull-and-merge their remote state on
+// load. After merge, future state changes write back (debounced).
+if (identity.hasValidSession()) {
   sync.pullAndMerge();
 }
 state.subscribe(() => sync.scheduleWriteBack());
@@ -132,17 +141,17 @@ ambient.setVolume(state.get().volume);
 // Debug info panel — toggle in top-right corner
 new InfoPanel({ identity });
 
-// Register-username prompt — appears on the second visit if not yet registered
-const registerPrompt = new RegisterPrompt({
+// Register/login prompt — auto-shown on second visit (register) or when a
+// stored session expires (login). Also re-shown on 401 via onSessionExpired.
+registerPrompt = new RegisterPrompt({
   identity,
   sync,
-  onRegistered: () => {
+  onSignedIn: () => {
     ui.refreshTitle();
     sync.pullAndMerge();
   },
 });
 if (registerPrompt.shouldShow()) {
-  // Defer slightly so the page paints before the modal interrupts
   setTimeout(() => registerPrompt.show(), 1500);
 }
 

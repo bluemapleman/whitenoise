@@ -1,18 +1,22 @@
 // POST /api/register
-// Body: { username, browserInstanceId, state }
+// Body: { username, password, browserInstanceId, state }
 //
-// Claims a username for the given browserInstanceId. 409 if already taken
-// by a different browserInstanceId. State is the initial blob (whitenoise.state contents).
+// Creates a new user with a hashed password. Returns a session token so the
+// caller is logged in immediately. 409 if the username is already taken.
 
 import { USERNAME_RE, json, readJson, badRequest } from './_shared.js';
+import { hashPassword, createSession, PASSWORD_MIN_LENGTH } from './_auth.js';
 
 export async function onRequestPost({ request, env }) {
   const body = await readJson(request);
   if (!body) return badRequest('invalid json');
 
-  const { username, browserInstanceId, state } = body;
+  const { username, password, browserInstanceId, state } = body;
   if (!username || !USERNAME_RE.test(username)) {
     return badRequest('username must match [a-z0-9_-]{3,30}');
+  }
+  if (typeof password !== 'string' || password.length < PASSWORD_MIN_LENGTH) {
+    return badRequest(`password must be at least ${PASSWORD_MIN_LENGTH} characters`);
   }
   if (!browserInstanceId || typeof browserInstanceId !== 'string') {
     return badRequest('browserInstanceId required');
@@ -20,18 +24,29 @@ export async function onRequestPost({ request, env }) {
 
   const key = `user:${username}`;
   const existing = await env.WHITENOISE_STATE.get(key, 'json');
-
-  if (existing && existing.browserInstanceId !== browserInstanceId) {
+  if (existing) {
     return json({ error: 'username taken' }, { status: 409 });
   }
 
+  const { salt, hash } = await hashPassword(password);
+  const now = new Date().toISOString();
   const record = {
-    browserInstanceId,
+    passwordHash: hash,
+    salt,
+    browserInstanceId,    // kept for debug visibility, not used for auth
     state: state || {},
-    createdAt: existing?.createdAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
   await env.WHITENOISE_STATE.put(key, JSON.stringify(record));
 
-  return json({ ok: true, username, createdAt: record.createdAt });
+  const session = await createSession(env, username);
+
+  return json({
+    ok: true,
+    username,
+    createdAt: now,
+    sessionToken: session.token,
+    sessionExpiresAt: session.expiresAt,
+  });
 }
