@@ -6,6 +6,7 @@ import { MediaSessionBinding } from './media-session.js';
 import { UI } from './ui.js';
 import { AmbientBg } from './ambient-bg.js';
 import { TimerProgress } from './timer-progress.js';
+import { InfoPanel } from './info-panel.js';
 
 const state = new State();
 const engine = new AudioEngine();
@@ -114,6 +115,9 @@ ui = new UI({
 // Apply initial volume from saved state
 engine.setVolume(state.get().volume);
 ambient.setVolume(state.get().volume);
+
+// Debug info panel — toggle in top-right corner
+new InfoPanel();
 
 // Register service worker for offline use
 if ('serviceWorker' in navigator) {

@@ -14,6 +14,7 @@ const SHELL = [
   '/src/ui.js',
   '/src/ambient-bg.js',
   '/src/timer-progress.js',
+  '/src/info-panel.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
