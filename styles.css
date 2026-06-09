@@ -394,6 +394,26 @@ main {
   cursor: pointer;
 }
 
+.mp-fav {
+  background: transparent;
+  border: 0;
+  color: var(--text-faint);
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 200ms ease, transform 150ms ease;
+}
+
+.mp-fav:active {
+  transform: scale(1.2);
+}
+
+.mp-fav.mp-fav-on {
+  color: var(--accent);
+}
+
 .mp-volume {
   width: 90px;
   flex-shrink: 0;

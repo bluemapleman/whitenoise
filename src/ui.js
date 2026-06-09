@@ -49,6 +49,7 @@ export class UI {
           <div class="mp-title" data-role="mp-title">—</div>
           <div class="mp-sub" data-role="mp-sub">—</div>
         </div>
+        <button class="mp-fav" data-role="mp-fav" aria-label="Toggle favorite" type="button">♡</button>
         <button class="mp-timer" data-role="mp-timer">⏱ ${s.lastTimer === 0 ? '∞' : s.lastTimer + 'm'}</button>
         <input class="mp-volume" type="range" min="0" max="1" step="0.01" value="${s.volume}" data-role="volume">
       </div>
@@ -154,6 +155,7 @@ export class UI {
     const playPause = this._root.querySelector('[data-role="play-pause"]');
     const volume = this._root.querySelector('[data-role="volume"]');
     const timerBtn = this._root.querySelector('[data-role="mp-timer"]');
+    const favBtn = this._root.querySelector('[data-role="mp-fav"]');
 
     playPause.addEventListener('click', () => {
       if (this._isPlaying) this._on.onPause();
@@ -162,6 +164,21 @@ export class UI {
 
     volume.addEventListener('input', (e) => this._on.onSetVolume(parseFloat(e.target.value)));
     timerBtn.addEventListener('click', () => this._on.onMiniPlayerTimerTap());
+    favBtn.addEventListener('click', () => {
+      const id = this._state.get().lastTrackId;
+      if (id) this._on.onToggleFavorite(id);
+    });
+    this._refreshFavButton();
+  }
+
+  _refreshFavButton() {
+    const favBtn = this._root.querySelector('[data-role="mp-fav"]');
+    if (!favBtn) return;
+    const s = this._state.get();
+    const id = s.lastTrackId;
+    const on = id && s.favorites.includes(id);
+    favBtn.textContent = on ? '♥' : '♡';
+    favBtn.classList.toggle('mp-fav-on', !!on);
   }
 
   showMiniPlayer(track, endsAt) {
@@ -171,6 +188,7 @@ export class UI {
     this._currentEndsAt = endsAt;
     this._root.querySelector('[data-role="mp-title"]').textContent = track.label;
     this._root.querySelector('[data-role="play-pause"]').textContent = '⏸';
+    this._refreshFavButton();
     this._startCountdown();
   }
 
