@@ -18,6 +18,9 @@ const SHELL = [
   '/src/identity.js',
   '/src/sync.js',
   '/src/register-prompt.js',
+  '/src/cat-companions.js',
+  '/assets/cat-tux.png',
+  '/assets/cat-tabby.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
