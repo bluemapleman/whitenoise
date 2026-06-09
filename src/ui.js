@@ -49,7 +49,7 @@ export class UI {
           <div class="mp-title" data-role="mp-title">—</div>
           <div class="mp-sub" data-role="mp-sub">—</div>
         </div>
-        <button class="mp-fav" data-role="mp-fav" aria-label="Toggle favorite" type="button">♡</button>
+        <button class="mp-fav" data-role="mp-fav" aria-label="Toggle favorite" type="button">♥</button>
         <button class="mp-timer" data-role="mp-timer">⏱ ${s.lastTimer === 0 ? '∞' : s.lastTimer + 'm'}</button>
         <input class="mp-volume" type="range" min="0" max="1" step="0.01" value="${s.volume}" data-role="volume">
       </div>
@@ -177,8 +177,8 @@ export class UI {
     const s = this._state.get();
     const id = s.lastTrackId;
     const on = id && s.favorites.includes(id);
-    favBtn.textContent = on ? '♥' : '♡';
     favBtn.classList.toggle('mp-fav-on', !!on);
+    favBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
 
   showMiniPlayer(track, endsAt) {

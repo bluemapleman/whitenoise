@@ -400,7 +400,12 @@ main {
   color: var(--text-faint);
   font-size: 20px;
   line-height: 1;
-  padding: 4px 6px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
   transition: color 200ms ease, transform 150ms ease;
