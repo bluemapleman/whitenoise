@@ -51,6 +51,19 @@ main {
   inherits: true;
   initial-value: transparent;
 }
+/* Per-bloom cross-fade percentage between c1 and c2.
+   bloom1-mix at 0% = c1, at 100% = c2; animation oscillates between them.
+   bloom2-mix is offset so the two blooms rarely show the same color at once. */
+@property --bloom1-mix {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+@property --bloom2-mix {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
 
 .ambient-bg {
   position: fixed;
@@ -71,23 +84,31 @@ main {
   height: 90vmax;
   border-radius: 50%;
   filter: blur(60px);
-  will-change: transform;
-  /* Without @property registration above, this transition would snap. */
-  transition: background 3000ms ease-in-out;
+  will-change: transform, opacity;
 }
 
 .ambient-bg::before {
   top: -30vmax;
   left: -30vmax;
-  background: radial-gradient(circle, var(--ambient-c1) 0%, transparent 65%);
-  animation: ambient-drift-1 42s ease-in-out infinite alternate;
+  background: radial-gradient(circle,
+    color-mix(in oklch, var(--ambient-c1), var(--ambient-c2) var(--bloom1-mix))
+    0%, transparent 65%);
+  animation:
+    ambient-drift-1 42s ease-in-out infinite alternate,
+    bloom1-cycle 25s ease-in-out infinite alternate,
+    bloom1-pulse 17s ease-in-out infinite alternate;
 }
 
 .ambient-bg::after {
   bottom: -30vmax;
   right: -30vmax;
-  background: radial-gradient(circle, var(--ambient-c2) 0%, transparent 65%);
-  animation: ambient-drift-2 38s ease-in-out infinite alternate;
+  background: radial-gradient(circle,
+    color-mix(in oklch, var(--ambient-c1), var(--ambient-c2) var(--bloom2-mix))
+    0%, transparent 65%);
+  animation:
+    ambient-drift-2 38s ease-in-out infinite alternate,
+    bloom2-cycle 28s ease-in-out infinite alternate,
+    bloom2-pulse 19s ease-in-out infinite alternate;
 }
 
 .ambient-bg.ambient-paused::before,
@@ -99,6 +120,7 @@ main {
   opacity: calc(var(--ambient-opacity, 0) * 0.5) !important;
 }
 
+/* Drift = slow translate + scale (the cloud floating around) */
 @keyframes ambient-drift-1 {
   0%   { transform: translate(0, 0) scale(1); }
   50%  { transform: translate(20vw, 12vh) scale(1.15); }
@@ -111,11 +133,46 @@ main {
   100% { transform: translate(-6vw, -22vh) scale(1.08); }
 }
 
-/* Respect users who prefer reduced motion — keep the colors but stop the drift. */
+/* Color cycle = each bloom slowly slides between palette[0] and palette[1].
+   bloom1 starts at c1 and drifts toward c2; bloom2 starts at c2 and drifts
+   toward c1. The two blooms thus cross-fade against each other organically. */
+@keyframes bloom1-cycle {
+  0%   { --bloom1-mix: 0%; }
+  100% { --bloom1-mix: 100%; }
+}
+
+@keyframes bloom2-cycle {
+  0%   { --bloom2-mix: 100%; }
+  100% { --bloom2-mix: 0%; }
+}
+
+/* Brightness pulse = a very subtle ±5% opacity wave per bloom on a different
+   period than the cycle, so the total apparent brightness never quite settles.
+   Inverted between blooms so total emitted light stays roughly constant. */
+@keyframes bloom1-pulse {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.92; }
+  100% { opacity: 1.05; }
+}
+
+@keyframes bloom2-pulse {
+  0%   { opacity: 1.05; }
+  50%  { opacity: 0.95; }
+  100% { opacity: 0.92; }
+}
+
+/* Respect users who prefer reduced motion — keep the colors and gentle
+   brightness/color cycles, but stop the drift translation. */
 @media (prefers-reduced-motion: reduce) {
-  .ambient-bg::before,
+  .ambient-bg::before {
+    animation:
+      bloom1-cycle 25s ease-in-out infinite alternate,
+      bloom1-pulse 17s ease-in-out infinite alternate;
+  }
   .ambient-bg::after {
-    animation: none;
+    animation:
+      bloom2-cycle 28s ease-in-out infinite alternate,
+      bloom2-pulse 19s ease-in-out infinite alternate;
   }
 }
 
