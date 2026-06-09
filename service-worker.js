@@ -12,6 +12,7 @@ const SHELL = [
   '/src/sleep-timer.js',
   '/src/media-session.js',
   '/src/ui.js',
+  '/src/ambient-bg.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];

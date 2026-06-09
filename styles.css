@@ -25,12 +25,98 @@ html, body {
 
 body {
   padding-bottom: 76px; /* room for sticky mini-player */
+  position: relative;
+  overflow-x: hidden;
 }
 
 main {
   max-width: 480px;
   margin: 0 auto;
   padding: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Ambient background ===== */
+/* Registered <color> properties so the CSS transitions interpolate smoothly
+   between palettes instead of snapping. Without @property, color values
+   are treated as discrete strings and don't animate. */
+@property --ambient-c1 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ambient-c2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--bg);
+  opacity: var(--ambient-opacity, 0);
+  transition: opacity var(--ambient-fade-duration, 3000ms) ease-in-out;
+  overflow: hidden;
+}
+
+.ambient-bg::before,
+.ambient-bg::after {
+  content: '';
+  position: absolute;
+  width: 90vmax;
+  height: 90vmax;
+  border-radius: 50%;
+  filter: blur(60px);
+  will-change: transform;
+  /* Without @property registration above, this transition would snap. */
+  transition: background 3000ms ease-in-out;
+}
+
+.ambient-bg::before {
+  top: -30vmax;
+  left: -30vmax;
+  background: radial-gradient(circle, var(--ambient-c1) 0%, transparent 65%);
+  animation: ambient-drift-1 42s ease-in-out infinite alternate;
+}
+
+.ambient-bg::after {
+  bottom: -30vmax;
+  right: -30vmax;
+  background: radial-gradient(circle, var(--ambient-c2) 0%, transparent 65%);
+  animation: ambient-drift-2 38s ease-in-out infinite alternate;
+}
+
+.ambient-bg.ambient-paused::before,
+.ambient-bg.ambient-paused::after {
+  animation-play-state: paused;
+}
+
+.ambient-bg.ambient-paused {
+  opacity: calc(var(--ambient-opacity, 0) * 0.5) !important;
+}
+
+@keyframes ambient-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(20vw, 12vh) scale(1.15); }
+  100% { transform: translate(8vw, 24vh) scale(1.05); }
+}
+
+@keyframes ambient-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-18vw, -10vh) scale(1.12); }
+  100% { transform: translate(-6vw, -22vh) scale(1.08); }
+}
+
+/* Respect users who prefer reduced motion — keep the colors but stop the drift. */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-bg::before,
+  .ambient-bg::after {
+    animation: none;
+  }
 }
 
 .hdr {

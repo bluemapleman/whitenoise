@@ -4,14 +4,22 @@ import { AudioEngine } from './audio-engine.js';
 import { SleepTimer } from './sleep-timer.js';
 import { MediaSessionBinding } from './media-session.js';
 import { UI } from './ui.js';
+import { AmbientBg } from './ambient-bg.js';
 
 const state = new State();
 const engine = new AudioEngine();
 let timerEndsAt = 0;
 let ui;
 
+// Ambient background — visual companion to the audio. Inserted before <main>
+// so it sits behind everything (z-index: 0 in styles).
+const ambientEl = document.createElement('div');
+ambientEl.className = 'ambient-bg';
+document.body.insertBefore(ambientEl, document.body.firstChild);
+const ambient = new AmbientBg(ambientEl);
+
 const timer = new SleepTimer({
-  onFadeOut: (ms) => engine.fadeOut(ms),
+  onFadeOut: (ms) => { engine.fadeOut(ms); ambient.fadeOut(ms); },
   onStop: () => stopPlayback(),
 });
 
@@ -35,6 +43,10 @@ async function startPlayback(trackId) {
   state.update({ lastTrackId: trackId });
   media.setNowPlaying(track);
   ui.showMiniPlayer(track, timerEndsAt);
+  ambient.setTrack(track);
+  ambient.setVolume(state.get().volume);
+  ambient.setPlaying();
+  ambient.show();
 }
 
 function pausePlayback() {
@@ -42,6 +54,7 @@ function pausePlayback() {
   timer.cancel();
   media.setPaused();
   ui.setMiniPlayerPaused();
+  ambient.setPaused();
 }
 
 function stopPlayback() {
@@ -49,6 +62,7 @@ function stopPlayback() {
   timer.cancel();
   media.clear();
   ui.hideMiniPlayer();
+  ambient.clear();
 }
 
 function playLast() {
@@ -63,12 +77,13 @@ ui = new UI({
   onPause: () => pausePlayback(),
   onSelectTimer: (preset) => state.update({ lastTimer: preset }),
   onToggleFavorite: (id) => state.toggleFavorite(id),
-  onSetVolume: (v) => { engine.setVolume(v); state.update({ volume: v }); },
+  onSetVolume: (v) => { engine.setVolume(v); ambient.setVolume(v); state.update({ volume: v }); },
   onMiniPlayerTimerTap: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
 });
 
 // Apply initial volume from saved state
 engine.setVolume(state.get().volume);
+ambient.setVolume(state.get().volume);
 
 // Register service worker for offline use
 if ('serviceWorker' in navigator) {
