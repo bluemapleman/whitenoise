@@ -15,6 +15,9 @@ const SHELL = [
   '/src/ambient-bg.js',
   '/src/timer-progress.js',
   '/src/info-panel.js',
+  '/src/identity.js',
+  '/src/sync.js',
+  '/src/register-prompt.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
@@ -45,13 +48,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // Never intercept /api/* — those are dynamic Pages Functions (KV reads,
+  // user state). Caching them would silently serve stale or wrong-user data.
+  const path = new URL(req.url).pathname;
+  if (path.startsWith('/api/')) return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(req);
     if (cached) return cached;
     try {
       const res = await fetch(req);
-      if (res.ok && (AUDIO.includes(new URL(req.url).pathname) || SHELL.includes(new URL(req.url).pathname))) {
+      if (res.ok && (AUDIO.includes(path) || SHELL.includes(path))) {
         cache.put(req, res.clone());
       }
       return res;

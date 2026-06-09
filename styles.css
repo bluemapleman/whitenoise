@@ -523,3 +523,99 @@ main {
   max-height: 260px;
   overflow-y: auto;
 }
+
+/* ===== Register-username modal ===== */
+.register-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.register-overlay.register-overlay-open {
+  opacity: 1;
+}
+
+.register-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 22px;
+  max-width: 420px;
+  width: 100%;
+  color: var(--text);
+}
+
+.register-card h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.register-card p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.register-card input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  outline: none;
+}
+
+.register-card input:focus {
+  border-color: var(--accent);
+}
+
+.register-error {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.register-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.register-skip,
+.register-submit {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.register-skip {
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.register-submit {
+  background: var(--accent);
+  color: #fff;
+}
+
+.register-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

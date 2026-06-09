@@ -5,7 +5,8 @@
 // Re-reads on every open so updates are reflected without refresh.
 
 export class InfoPanel {
-  constructor() {
+  constructor({ identity } = {}) {
+    this._identity = identity || null;
     const wrap = document.createElement('div');
     wrap.innerHTML = `
       <button class="info-toggle" data-role="info-toggle" aria-label="Debug info" type="button">
@@ -20,6 +21,10 @@ export class InfoPanel {
           <span>Debug info</span>
           <button class="info-close" data-role="info-close" aria-label="Close" type="button">×</button>
         </div>
+        <section class="info-panel-section">
+          <h3>Identity (this browser)</h3>
+          <pre data-role="info-identity"></pre>
+        </section>
         <section class="info-panel-section">
           <h3>Cookies (this origin)</h3>
           <pre data-role="info-cookies"></pre>
@@ -39,6 +44,7 @@ export class InfoPanel {
     this._toggleBtn = wrap.querySelector('[data-role="info-toggle"]');
     this._panel = wrap.querySelector('[data-role="info-panel"]');
     this._closeBtn = wrap.querySelector('[data-role="info-close"]');
+    this._identityEl = wrap.querySelector('[data-role="info-identity"]');
     this._cookieEl = wrap.querySelector('[data-role="info-cookies"]');
     this._storageEl = wrap.querySelector('[data-role="info-storage"]');
     this._miscEl = wrap.querySelector('[data-role="info-misc"]');
@@ -66,6 +72,13 @@ export class InfoPanel {
   }
 
   _refresh() {
+    // Identity — deviceId + username + visit count
+    if (this._identity) {
+      this._identityEl.textContent = JSON.stringify(this._identity.getAll(), null, 2);
+    } else {
+      this._identityEl.textContent = '(identity not initialized)';
+    }
+
     // Cookies — string of "k=v; k=v" or empty
     const raw = document.cookie || '';
     this._cookieEl.textContent = raw.trim() ? raw : '(none — this app sets no cookies)';

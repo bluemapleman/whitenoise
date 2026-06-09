@@ -7,12 +7,24 @@ import { UI } from './ui.js';
 import { AmbientBg } from './ambient-bg.js';
 import { TimerProgress } from './timer-progress.js';
 import { InfoPanel } from './info-panel.js';
+import { Identity } from './identity.js';
+import { Sync } from './sync.js';
+import { RegisterPrompt } from './register-prompt.js';
 
 const state = new State();
 const engine = new AudioEngine();
+const identity = new Identity();
+const sync = new Sync({ identity, state });
 let timerEndsAt = 0;
 let activeTrack = null;
 let ui;
+
+// If the user already registered a username, pull-and-merge their remote
+// state on load. After merge, future state changes write back (debounced).
+if (identity.username()) {
+  sync.pullAndMerge();
+}
+state.subscribe(() => sync.scheduleWriteBack());
 
 // Ambient background — visual companion to the audio. Inserted before <main>
 // so it sits behind everything (z-index: 0 in styles).
@@ -117,7 +129,18 @@ engine.setVolume(state.get().volume);
 ambient.setVolume(state.get().volume);
 
 // Debug info panel — toggle in top-right corner
-new InfoPanel();
+new InfoPanel({ identity });
+
+// Register-username prompt — appears on the second visit if not yet registered
+const registerPrompt = new RegisterPrompt({
+  identity,
+  sync,
+  onRegistered: () => sync.pullAndMerge(),
+});
+if (registerPrompt.shouldShow()) {
+  // Defer slightly so the page paints before the modal interrupts
+  setTimeout(() => registerPrompt.show(), 1500);
+}
 
 // Register service worker for offline use
 if ('serviceWorker' in navigator) {

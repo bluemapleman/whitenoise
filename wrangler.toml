@@ -1,0 +1,7 @@
+name = "whitenoise"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "WHITENOISE_STATE"
+id = "a149e7599a6140a991524501e64452cc"
