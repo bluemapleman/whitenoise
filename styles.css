@@ -219,7 +219,7 @@ main {
   left: 0;
   right: 0;
   bottom: calc(76px + env(safe-area-inset-bottom));   /* mini-player height */
-  height: 14px;
+  height: 18px;
   display: none;
   cursor: pointer;
   touch-action: none;
@@ -233,42 +233,42 @@ main {
   display: block;
 }
 
-/* The 14px height is the touch target; the visible track is centered inside */
+/* The 18px height is the touch target; the visible track is centered inside */
 .timer-progress::before {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
   top: 50%;
-  height: 3px;
-  margin-top: -1.5px;
+  height: 5px;
+  margin-top: -2.5px;
   background: var(--surface);
-  border-radius: 2px;
+  border-radius: 3px;
   transition: height 150ms ease, margin-top 150ms ease;
 }
 
 .timer-progress.tp-active::before {
-  height: 6px;
-  margin-top: -3px;
+  height: 8px;
+  margin-top: -4px;
 }
 
 .tp-fill {
   position: absolute;
   left: 0;
   top: 50%;
-  height: 3px;
-  margin-top: -1.5px;
+  height: 5px;
+  margin-top: -2.5px;
   background: var(--tp-fill-color);
-  opacity: 0.85;
-  border-radius: 2px;
+  opacity: 1;
+  border-radius: 3px;
   width: 0;
   transition: height 150ms ease, margin-top 150ms ease, background 800ms ease;
   pointer-events: none;
 }
 
 .timer-progress.tp-active .tp-fill {
-  height: 6px;
-  margin-top: -3px;
+  height: 8px;
+  margin-top: -4px;
 }
 
 .tp-handle {
